@@ -32,11 +32,21 @@ router.post('/login', async (req, res) => {
     if (!valid) return res.status(400).json({ error: 'Invalid email or password' });
 
     const token = generateToken(user);
-    res.json({ token });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.get('/', async (req, res) => {
   const users = await User.find().select('-passwordHash');
