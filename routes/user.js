@@ -47,6 +47,38 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/select-shop', authenticate, async (req, res) => {
+  const { shopId } = req.body;
+  const userId = req.user.id; // JWT'den geliyor
+
+  if (!shopId) {
+    return res.status(400).json({ message: 'shopId is required' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { shopId },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
+      message: 'Shop selected successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        shopId: user.shopId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 router.get('/', async (req, res) => {
   const users = await User.find().select('-passwordHash');
