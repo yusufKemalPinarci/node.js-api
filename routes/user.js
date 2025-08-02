@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/select-shop', authenticate, async (req, res) => {
+router.post('/select-shop', async (req, res) => {
   const { shopId } = req.body;
   const userId = req.user.id; // JWT'den geliyor
 
