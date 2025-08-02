@@ -47,37 +47,36 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/select-shop', async (req, res) => {
-  const { shopId } = req.body;
-  const userId = req.user.id; // JWT'den geliyor
+const authMiddleware = require('../middlewares/auth');
 
-  if (!shopId) {
-    return res.status(400).json({ message: 'shopId is required' });
-  }
-
+router.post('/select-shop', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { shopId },
-      { new: true }
-    );
+    const { shopId } = req.body;
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!shopId) return res.status(400).json({ error: 'shopId is required' });
+
+    const user = req.user;
+    user.shopId = shopId;
+    await user.save();
 
     res.json({
-      message: 'Shop selected successfully',
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        //isEmailVerified: false, // veya kendi verine göre
+        //phone: '',              // varsayılan değer
+        //isPhoneVerified: false,
+        //avatarUrl: null,
         shopId: user.shopId,
-      },
+      }
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 
 router.get('/', async (req, res) => {
