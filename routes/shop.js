@@ -61,5 +61,21 @@ router.get('/by-staff-email', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const shop = await Shop.findById(id);
+
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    res.status(200).json(shop);
+  } catch (err) {
+    console.error('Shop fetch error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;
