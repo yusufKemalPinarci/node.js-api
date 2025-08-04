@@ -78,4 +78,41 @@ router.get('/:id', async (req, res) => {
 });
 
 
+
+// Query ile dükkanları filtrele
+// GET /api/shop/search?city=Istanbul&neighborhood=Kadikoy&district=Moda
+router.get('/search', async (req, res) => {
+  try {
+    const { city, neighborhood} = req.query;
+
+    // Filtre objesi oluşturuyoruz, varsa ekliyoruz
+    const filter = {};
+    if (city) filter.city = city;
+    if (neighborhood) filter.neighborhood = neighborhood;
+
+    // Filtreye göre Shop'ları getir
+    const shops = await Shop.find(filter);
+
+    res.json(shops);
+  } catch (err) {
+    console.error('Error searching shops:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+
+// Tüm dükkanları getir (genel listeleme)
+router.get('/', async (req, res) => {
+  try {
+    const shops = await Shop.find();
+    res.json(shops);
+  } catch (err) {
+    console.error('Error fetching all shops:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+
+
+
 module.exports = router;
