@@ -79,6 +79,14 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
   }
 });
 
+// /api/user/exists?email=xxx@example.com
+router.get('/exists', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ exists: false });
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  res.json({ exists: !!user });
+});
 
 
 router.get('/', async (req, res) => {
