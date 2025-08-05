@@ -104,6 +104,31 @@ router.get('/:shopId/staff', async (req, res) => {
   }
 });
 
+router.get('/:shopId/staff2', async (req, res) => {
+  try {
+    const shopId = req.params.shopId;
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ error: 'Dükkan bulunamadı' });
+    }
+
+    // Tüm e-posta adreslerini al
+    const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
+
+    // Kullanıcı tablosunda olanları getir
+    const users = await User.find({ email: { $in: staffEmails } });
+
+    // Sadece eşleşen kullanıcıların e-posta adreslerini döndür
+    const existingEmails = users.map(user => user.email);
+
+    res.status(200).json(existingEmails);
+  } catch (error) {
+    console.error('Hata:', error);
+    res.status(500).json({ error: 'Sunucu hatası', details: error.message });
+  }
+});
+
 
 
 
