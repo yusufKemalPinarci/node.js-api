@@ -100,10 +100,10 @@ router.get('/:shopId/staff', async (req, res) => {
     const staffUsers = await User.find({
       email: { $in: lowerCaseEmails }
     });
-
+    console.log("Staff emails:", shop.staffEmails );
     res.json(staffUsers);
   } catch (error) {
-    console.log("Staff emails:", shop.staffEmails);
+   
     console.error('Hata:', error);
     res.status(500).json({ error: 'Sunucu hatası' });
   }
