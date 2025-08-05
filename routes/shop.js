@@ -150,26 +150,18 @@ router.get('/', async (req, res) => {
 // PUT /api/shop/:id/add-staff
 router.put('/:id/add-staff', async (req, res) => {
   try {
-    const shopId = req.params.id;
-    const { email } = req.body;
-
-    email = email.toLowerCase(); 
+    let { email } = req.body;
+    email = email.toLowerCase(); // artık hata yok
 
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    const shop = await Shop.findById(shopId);
+    const shop = await Shop.findById(req.params.id);
     if (!shop) {
       return res.status(404).json({ message: 'Shop not found' });
     }
 
-    // Örn: Kimlik doğrulama varsa buradan gelen kullanıcı ID'siyle karşılaştırılabilir
-    // if (req.user.id !== shop.ownerId.toString()) {
-    //   return res.status(403).json({ message: 'Only the owner can add staff' });
-    // }
-
-    // Email zaten ekli mi kontrol et
     if (shop.staffEmails.includes(email)) {
       return res.status(400).json({ message: 'This email is already added as staff.' });
     }
@@ -183,6 +175,7 @@ router.put('/:id/add-staff', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 
