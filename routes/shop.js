@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Dükkanları listele
+// Çalışana Ait Dükkanları listele
 // GET /api/shop/by-staff-email?email=test@example.com
 router.get('/by-staff-email', async (req, res) => {
   try {
@@ -61,6 +61,9 @@ router.get('/by-staff-email', async (req, res) => {
   }
 });
 
+
+
+//Dükkanı id sine göre bilgilerini getirme
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -78,8 +81,30 @@ router.get('/:id', async (req, res) => {
 });
 
 
+// Dükkanda çalışanları listeleme   //Müşteri tarafında lazım.
+// GET /api/shop/:shopId/staff
+router.get('/:shopId/staff', async (req, res) => {
+  try {
+    const shopId = req.params.shopId;
 
-// Query ile dükkanları filtrele
+    // Dükkanı bul
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ error: 'Dükkan bulunamadı' });
+    }
+
+    // staffEmails'e göre kullanıcıları bul
+    const staffUsers = await User.find({ email: { $in: shop.staffEmails } });
+
+    res.json(staffUsers);
+  } catch (error) {
+    console.error('Hata:', error);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+
+// Query ile dükkanları filtrele     // Müşteri tarafında lazım arama butonu için
 // GET /api/shop/search?city=Istanbul&neighborhood=Kadikoy&district=Moda
 router.get('/search', async (req, res) => {
   try {
@@ -101,7 +126,7 @@ router.get('/search', async (req, res) => {
 });
 
 
-// Tüm dükkanları getir (genel listeleme)
+// Tüm dükkanları getir (genel listeleme)    // Müşteri tarafında lazım
 router.get('/', async (req, res) => {
   try {
     const shops = await Shop.find();
@@ -109,6 +134,43 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('Error fetching all shops:', err);
     res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+
+//dükkana çalışan ekleme          // Dükkan sahibi tarafında lazım.
+// PUT /api/shops/:id/add-staff
+router.put('/:id/add-staff', async (req, res) => {
+  try {
+    const shopId = req.params.id;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found' });
+    }
+
+    // Örn: Kimlik doğrulama varsa buradan gelen kullanıcı ID'siyle karşılaştırılabilir
+    // if (req.user.id !== shop.ownerId.toString()) {
+    //   return res.status(403).json({ message: 'Only the owner can add staff' });
+    // }
+
+    // Email zaten ekli mi kontrol et
+    if (shop.staffEmails.includes(email)) {
+      return res.status(400).json({ message: 'This email is already added as staff.' });
+    }
+
+    shop.staffEmails.push(email);
+    await shop.save();
+
+    res.status(200).json({ message: 'Staff added successfully', shop });
+  } catch (error) {
+    console.error('Error adding staff:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
