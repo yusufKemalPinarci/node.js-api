@@ -1,6 +1,6 @@
 const express = require('express');
 const Shop = require('../models/Shop');
-
+const User = require('../models/User');
 const router = express.Router();
 
 // Create Shop
@@ -103,6 +103,7 @@ router.get('/:shopId/staff', async (req, res) => {
 
     res.json(staffUsers);
   } catch (error) {
+    console.log("Staff emails:", shop.staffEmails);
     console.error('Hata:', error);
     res.status(500).json({ error: 'Sunucu hatası' });
   }
