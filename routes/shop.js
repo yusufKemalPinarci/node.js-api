@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Çalışana Ait Dükkanları listele
+// Çalışana Ait Dükkanları listele      //berber için lazım
 // GET /api/shop/by-staff-email?email=test@example.com
 router.get('/by-staff-email', async (req, res) => {
   try {
@@ -63,7 +63,7 @@ router.get('/by-staff-email', async (req, res) => {
 
 
 
-//Dükkanı id sine göre bilgilerini getirme
+//Dükkanı id sine göre bilgilerini getirme   // hem müşteri hem berber tarafında lazım.
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -87,14 +87,19 @@ router.get('/:shopId/staff', async (req, res) => {
   try {
     const shopId = req.params.shopId;
 
-    // Dükkanı bul
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({ error: 'Dükkan bulunamadı' });
     }
 
-    // staffEmails'e göre kullanıcıları bul
-    const staffUsers = await User.find({ email: { $in: shop.staffEmails } });
+    const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
+
+    // Email'leri küçük harfe çevirerek ve sadece geçerli olanları al
+    const lowerCaseEmails = staffEmails.map(email => email.toLowerCase());
+
+    const staffUsers = await User.find({
+      email: { $in: lowerCaseEmails }
+    });
 
     res.json(staffUsers);
   } catch (error) {
@@ -102,6 +107,8 @@ router.get('/:shopId/staff', async (req, res) => {
     res.status(500).json({ error: 'Sunucu hatası' });
   }
 });
+
+
 
 
 // Query ile dükkanları filtrele     // Müşteri tarafında lazım arama butonu için
@@ -139,11 +146,13 @@ router.get('/', async (req, res) => {
 
 
 //dükkana çalışan ekleme          // Dükkan sahibi tarafında lazım.
-// PUT /api/shops/:id/add-staff
+// PUT /api/shop/:id/add-staff
 router.put('/:id/add-staff', async (req, res) => {
   try {
     const shopId = req.params.id;
     const { email } = req.body;
+
+    email = email.toLowerCase(); 
 
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
