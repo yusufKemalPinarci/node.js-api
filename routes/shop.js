@@ -83,31 +83,44 @@ router.get('/:id', async (req, res) => {
 
 // Dükkanda çalışanları listeleme   //Müşteri tarafında lazım.
 // GET /api/shop/:shopId/staff
+// GET /api/shop/:shopId/staff
 router.get('/:shopId/staff', async (req, res) => {
   try {
     const shopId = req.params.shopId;
 
+    // Dükkanı bul
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({ error: 'Dükkan bulunamadı' });
     }
 
-    const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
+    // Geçerli email listesi al
+    const staffEmails = (shop.staffEmails || [])
+      .filter(email => typeof email === 'string')
+      .map(email => email.toLowerCase());
 
-    // Email'leri küçük harfe çevirerek ve sadece geçerli olanları al
-    const lowerCaseEmails = staffEmails.map(email => email.toLowerCase());
-
+    // Email eşleşen kullanıcıları getir
     const staffUsers = await User.find({
-      email: { $in: lowerCaseEmails }
-    });
-    console.log("Staff emails:", shop.staffEmails );
-    res.json(staffUsers);
+      email: { $in: staffEmails }
+    }).select('_id name email role shopId createdAt'); // sadece gerekli alanları döndürüyoruz
+
+    // Kart formatında response
+    const staffCards = staffUsers.map(user => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      shopId: user.shopId,
+      joinedAt: user.createdAt
+    }));
+
+    res.status(200).json(staffCards);
   } catch (error) {
-   
     console.error('Hata:', error);
     res.status(500).json({ error: 'Sunucu hatası' });
   }
 });
+
 
 
 
