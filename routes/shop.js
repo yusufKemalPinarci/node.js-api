@@ -83,43 +83,27 @@ router.get('/:id', async (req, res) => {
 
 // Dükkanda çalışanları listeleme   //Müşteri tarafında lazım.
 // GET /api/shop/:shopId/staff
+// GET /api/shop/:shopId/staff - sadece çalışan email'lerini döner
 router.get('/:shopId/staff', async (req, res) => {
   try {
     const shopId = req.params.shopId;
 
     const shop = await Shop.findById(shopId);
+
     if (!shop) {
       return res.status(404).json({ error: 'Dükkan bulunamadı' });
     }
 
     const staffEmails = (shop.staffEmails || [])
-      .filter(email => typeof email === 'string')
-      .map(email => email.toLowerCase());
+      .filter(email => typeof email === 'string');
 
-    console.log('Shop ID:', shopId);
-    console.log('Staff emails:', staffEmails);
-
-    const staffUsers = await User.find({
-      email: { $in: staffEmails }
-    }).select('_id name email role shopId createdAt');
-
-    console.log('Staff users found:', staffUsers);
-
-    const staffCards = staffUsers.map(user => ({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      shopId: user.shopId,
-      joinedAt: user.createdAt
-    }));
-
-    res.status(200).json(staffCards);
+    res.status(200).json(staffEmails);
   } catch (error) {
     console.error('Hata:', error);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    res.status(500).json({ error: 'Sunucu hatası', details: error.message });
   }
 });
+
 
 
 
