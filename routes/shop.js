@@ -1,6 +1,7 @@
 const express = require('express');
 const Shop = require('../models/Shop');
-const User = require('../models/User');
+const { User } = require('../models/User');
+
 const router = express.Router();
 
 // Create Shop
