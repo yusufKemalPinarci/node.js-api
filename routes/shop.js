@@ -21,6 +21,12 @@ router.post('/', async (req, res) => {
       staffEmails     // yeni alan
     } = req.body;
 
+    const owner = await User.findById(ownerId);
+    const ownerEmail = owner?.email;
+       // Sahip mailini staff listesine otomatik ekle
+    if (ownerEmail && !staffEmails.includes(ownerEmail)) {
+      staffEmails.push(ownerEmail);
+    }
     const shop = new Shop({
       name,
       fullAddress,
@@ -82,53 +88,34 @@ router.get('/:id', async (req, res) => {
 });
 
 
-// Dükkanda çalışanları listeleme   //Müşteri tarafında lazım.
-// GET /api/shop/:shopId/staff
-// GET /api/shop/:shopId/staff - sadece çalışan email'lerini döner
+
 router.get('/:shopId/staff', async (req, res) => {
   try {
     const shopId = req.params.shopId;
 
     const shop = await Shop.findById(shopId);
-
     if (!shop) {
       return res.status(404).json({ error: 'Dükkan bulunamadı' });
     }
 
-    const staffEmails = (shop.staffEmails || [])
-      .filter(email => typeof email === 'string');
-
-    res.status(200).json(staffEmails);
-  } catch (error) {
-    console.error('Hata:', error);
-    res.status(500).json({ error: 'Sunucu hatası', details: error.message });
-  }
-});
-
-router.get('/:shopId/staff2', async (req, res) => {
-  try {
-    const shopId = req.params.shopId;
-
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ error: 'Dükkan bulunamadı' });
-    }
-
-    // Tüm e-posta adreslerini al
+    // Tüm e-posta adreslerini al (string filtrele)
     const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
 
-    // Kullanıcı tablosunda olanları getir
-    const users = await User.find({ email: { $in: staffEmails } });
+    // Bu e-posta adreslerine sahip kullanıcıları getir (tüm bilgileriyle)
+    const users = await User.find(
+  { email: { $in: staffEmails } },
+  '-passwordHash -__v' // Bu alanları hariç tut
+);
 
-    // Sadece eşleşen kullanıcıların e-posta adreslerini döndür
-    const existingEmails = users.map(user => user.email);
 
-    res.status(200).json(existingEmails);
+    // Tüm kullanıcı bilgilerini döndür
+    res.status(200).json(users);
   } catch (error) {
     console.error('Hata:', error);
     res.status(500).json({ error: 'Sunucu hatası', details: error.message });
   }
 });
+
 
 
 
