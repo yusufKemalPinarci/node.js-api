@@ -83,17 +83,28 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
 router.put('/user/:id/phone', async (req, res) => {
   try {
     const { phone } = req.body;
+
+    // Telefon numarası kontrolü
+    if (!phone || phone.trim() === '') {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+
     const user = await User.findByIdAndUpdate(
-      req.params.id, 
-      { phone }, 
+      req.params.id,
+      { phone },
       { new: true }
     );
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ message: 'Phone updated', phone: user.phone });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'Phone updated successfully', phone: user.phone });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // /api/user/exists?email=xxx@example.com
