@@ -80,7 +80,7 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
 });
 
 // usera telefeon ekleme
-router.put('/user/:id/phone', async (req, res) => {
+router.put('/:id/phone', async (req, res) => {
   try {
     const { phone } = req.body;
 
