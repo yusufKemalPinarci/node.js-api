@@ -117,12 +117,6 @@ router.get('/:shopId/staff', async (req, res) => {
 });
 
 
-
-
-
-
-
-
 // Query ile dükkanları filtrele     // Müşteri tarafında lazım arama butonu için
 // GET /api/shop/search?city=Istanbul&neighborhood=Kadikoy&district=Moda
 router.get('/search', async (req, res) => {

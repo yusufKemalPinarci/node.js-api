@@ -79,6 +79,23 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
   }
 });
 
+// usera telefeon ekleme
+router.put('/user/:id/phone', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id, 
+      { phone }, 
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Phone updated', phone: user.phone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // /api/user/exists?email=xxx@example.com
 router.get('/exists', async (req, res) => {
   const { email } = req.query;
