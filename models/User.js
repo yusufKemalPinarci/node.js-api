@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   passwordHash: { type: String },
   role: { type: String, enum: Object.values(UserRole), default: UserRole.CUSTOMER },
+  phone: { type: String, trim: true, default: '' },
   shopId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop', default: null },
 }, { timestamps: true });
 
