@@ -5,6 +5,7 @@ const shopSchema = new mongoose.Schema({
   fullAddress: { type: String, required: true },
   neighborhood: { type: String, required: true },
   city: { type: String, required: true },
+  district: { type: String },  // <-- district eklendi, zorunlu değil
   phone: { type: String },
   adress: { type: String },
   openingHour: { type: String, required: true },
@@ -13,5 +14,6 @@ const shopSchema = new mongoose.Schema({
   ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   staffEmails: [{ type: String }],
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('Shop', shopSchema);

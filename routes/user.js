@@ -79,6 +79,33 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
   }
 });
 
+router.post('/leave-shop', authMiddleware, async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user.shopId) {
+      return res.status(400).json({ error: 'User is not assigned to any shop' });
+    }
+
+    user.shopId = null; // veya undefined de olabilir
+    await user.save();
+
+    res.json({
+      message: 'Successfully left the shop',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        shopId: user.shopId,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // usera telefeon ekleme
 router.put('/:id/phone', async (req, res) => {
   try {
