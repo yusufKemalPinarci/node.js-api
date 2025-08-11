@@ -7,21 +7,72 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    email = email.toLowerCase(); 
+    let { name, email, password, role, phone, shopId, availability, services, bio } = req.body;
+
+    email = email.toLowerCase();
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email already in use' });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = new User({ name, email, passwordHash, role: role || UserRole.CUSTOMER });
+    let userData = {
+      name,
+      email,
+      passwordHash,
+      role: role || UserRole.CUSTOMER,
+      phone: phone || '',
+      shopId: shopId || null,
+      bio: bio || '',
+    };
+
+    // Barber ise availability ve services opsiyonel eklenebilir
+    if (role === UserRole.BARBER) {
+      if (services) userData.services = services;
+      if (availability) userData.availability = availability; // boş gelse de sorun olmaz
+    }
+
+    let user = new User(userData);
     await user.save();
 
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/barber/availability/:id', async (req, res) => {
+  try {
+    const { availability } = req.body;
+
+    if (!availability || !Array.isArray(availability)) {
+      return res.status(400).json({ error: 'Availability must be an array' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { availability },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'Availability updated', availability: user.availability });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 router.post('/login', async (req, res) => {
   try {
