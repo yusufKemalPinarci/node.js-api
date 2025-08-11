@@ -149,4 +149,82 @@ router.get('/', async (req, res) => {
   res.json(users);
 });
 
+
+
+// PUT /api/user/profile
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== UserRole.BARBER) {
+      return res.status(403).json({ error: 'Only barbers can update this' });
+    }
+
+    const { phone, bio, availability } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { phone, bio, availability },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// GET /api/user/:id/availability
+router.get('/:id/availability', async (req, res) => {
+  try {
+    const barber = await User.findById(req.params.id).select('availability role');
+
+    if (!barber) {
+      return res.status(404).json({ error: 'Berber bulunamadı' });
+    }
+
+    if (barber.role !== UserRole.BARBER) {
+      return res.status(400).json({ error: 'Kullanıcı berber değil' });
+    }
+
+    res.json({ availability: barber.availability || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+// PUT /api/user/availability
+router.put('/availability', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== UserRole.BARBER) {
+      return res.status(403).json({ error: 'Sadece berberler müsaitliklerini güncelleyebilir' });
+    }
+
+    const { availability } = req.body; 
+    // Örnek body:
+    // [
+    //   { dayOfWeek: 1, timeRanges: [{ startTime: '09:00', endTime: '12:00' }, { startTime: '13:00', endTime: '22:00' }] },
+    //   { dayOfWeek: 2, timeRanges: [{ startTime: '10:00', endTime: '18:00' }] }
+    // ]
+
+    if (!Array.isArray(availability)) {
+      return res.status(400).json({ error: 'availability array is required' });
+    }
+
+    // Basit validasyon yapabilirsin
+
+    req.user.availability = availability;
+    await req.user.save();
+
+    res.json({ message: 'Availability updated', availability: req.user.availability });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
 module.exports = router;
