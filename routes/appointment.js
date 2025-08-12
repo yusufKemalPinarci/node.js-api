@@ -1,13 +1,13 @@
 const express = require('express');
 const Appointment = require('../models/Appointment');
-const { User } = require('../models/User'); // User modelini içeren dosyanın yolu
+const  User  = require('../models/User'); // User modelini içeren dosyanın yolu
 const Service = require('../models/Service'); // Service şemanın yolu
 
 const router = express.Router();
 
 // ✅ Yeni randevu oluştur
 // POST /api/appointments
-router.post('/',  async (req, res) => { //authMiddleware,
+router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
   try {
     const { barberId, date, startTime, serviceId } = req.body;
 
