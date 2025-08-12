@@ -56,8 +56,9 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    email = email.toLowerCase(); 
-    const user = await User.findOne({ email });
+    const lowerEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: lowerEmail });
     if (!user) return res.status(400).json({ error: 'Invalid email or password' });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
@@ -78,6 +79,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 const authMiddleware = require('../middlewares/auth');
 
