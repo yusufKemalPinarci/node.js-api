@@ -49,28 +49,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.put('/barber/availability/:id', async (req, res) => {
-  try {
-    const { availability } = req.body;
 
-    if (!availability || !Array.isArray(availability)) {
-      return res.status(400).json({ error: 'Availability must be an array' });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { availability },
-      { new: true }
-    );
-
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    res.json({ message: 'Availability updated', availability: user.availability });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 
 
@@ -224,7 +203,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
 });
 
 
-// GET /api/user/:id/availability
+// GET /api/user/:id/availability     //berberin uygun saatlerini çekmek için .
 router.get('/:id/availability', async (req, res) => {
   try {
     const barber = await User.findById(req.params.id).select('availability role');
@@ -245,7 +224,7 @@ router.get('/:id/availability', async (req, res) => {
 
 
 
-// PUT /api/user/availability
+// PUT /api/user/availability    //berber uyugn saatlerini güncellemesi için .
 router.put('/availability', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== UserRole.BARBER) {
@@ -269,6 +248,29 @@ router.put('/availability', authMiddleware, async (req, res) => {
     await req.user.save();
 
     res.json({ message: 'Availability updated', availability: req.user.availability });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/barber/availability/:id', async (req, res) => {
+  try {
+    const { availability } = req.body;
+
+    if (!availability || !Array.isArray(availability)) {
+      return res.status(400).json({ error: 'Availability must be an array' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { availability },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'Availability updated', availability: user.availability });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -8,11 +8,11 @@ const UserRole = {
 
 // Müsait saat yapısı
 const availabilitySchema = new mongoose.Schema({
-  dayOfWeek: { type: Number, required: true }, // 0=Pazar, 1=Pazartesi ... 6=Cumartesi
+  dayOfWeek: { type: Number, required: false }, // 0=Pazar, 1=Pazartesi ... 6=Cumartesi
   timeRanges: [
     {
-      startTime: { type: String, required: true }, // "09:00"
-      endTime: { type: String, required: true },   // "12:00"
+      startTime: { type: String, required: false }, // "09:00"
+      endTime: { type: String, required: false },   // "12:00"
     }
   ]
 }, { _id: false });
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 
   // Berberlere özel alanlar
   availability: [availabilitySchema], // haftalık müsait saatler
-  services: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }], // sunduğu hizmetler
+  // services: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }], // sunduğu hizmetler
   bio: { type: String, trim: true, default: '' }, // kısa açıklama
 }, { timestamps: true });
 

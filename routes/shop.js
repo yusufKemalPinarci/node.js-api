@@ -89,6 +89,7 @@ router.get('/:id', async (req, res) => {
 
 
 
+// dükkanda çalışan kişileri listelemek için 
 router.get('/:shopId/staff', async (req, res) => {
   try {
     const shopId = req.params.shopId;
