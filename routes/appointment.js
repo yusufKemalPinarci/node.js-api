@@ -141,45 +141,36 @@ router.get('/:id/availability', async (req, res) => {
 // müşteri uygun saate randevu alacak.
 router.post('/randevu_al', async (req, res) => {
   try {
-    const { barberId, customerId, date, startTime, serviceId } = req.body;
+    const { barberId, customerId, customerName, customerPhone, date, startTime, serviceId } = req.body;
 
-    // 1. Berber kontrolü ve rol doğrulaması
+    // 1. Berber kontrolü
     const barber = await User.findById(barberId);
     if (!barber || barber.role !== 'Barber') {
       return res.status(404).json({ error: 'Berber bulunamadı veya geçersiz rol' });
     }
 
-    // 2. Servisin berbere ait olup olmadığını kontrol et
+    // 2. Servis doğrulaması
     const service = await Service.findById(serviceId);
     if (!service || service.barberId.toString() !== barberId) {
-      return res.status(404).json({ error: 'Servis bulunamadı veya berbere ait değil' });
+      return res.status(404).json({ error: 'Servis bulunamadı veya bu berbere ait değil' });
     }
 
-    // 3. Berberin o tarihte ve saatte müsait olup olmadığını kontrol et
-    // availability yapısına göre kontrol
-    const availability = barber.availability || [];
-    const dayOfWeek = new Date(date).getDay(); // 0=Pazar, 1=Pazartesi ...
-    const availabilityForDay = availability.find(a => a.dayOfWeek === dayOfWeek);
+    // 3. Berberin o gün müsaitlik kontrolü
+    const dayOfWeek = new Date(date).getDay();
+    const availabilityForDay = (barber.availability || []).find(a => a.dayOfWeek === dayOfWeek);
     if (!availabilityForDay) {
       return res.status(400).json({ error: 'Berber o gün müsait değil' });
     }
 
-    // Müsait saat aralıklarından uygunluğa bak
     const isAvailable = availabilityForDay.timeRanges.some(range => {
       return startTime >= range.startTime && startTime < range.endTime;
     });
-
     if (!isAvailable) {
       return res.status(400).json({ error: 'Berber bu saatte müsait değil' });
     }
 
-    // 4. Aynı saatte başka randevu var mı kontrol et
-    const existingAppointment = await Appointment.findOne({
-      barberId,
-      date,
-      startTime
-    });
-
+    // 4. Çakışan randevu kontrolü
+    const existingAppointment = await Appointment.findOne({ barberId, date, startTime });
     if (existingAppointment) {
       return res.status(400).json({ error: 'Bu saat zaten dolu' });
     }
@@ -188,6 +179,8 @@ router.post('/randevu_al', async (req, res) => {
     const appointment = new Appointment({
       barberId,
       customerId,
+      customerName,
+      customerPhone,
       date,
       startTime,
       serviceId
@@ -201,6 +194,7 @@ router.post('/randevu_al', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
