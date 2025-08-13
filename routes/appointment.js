@@ -64,11 +64,10 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 
-
 // GET /available-times?barberId=xxx&date=2025-08-20    berberin dolu saatlerini görme 
 router.get('/available-times', async (req, res) => {
   try {
-    const { barberId, date } = req.query;
+    const { barberId, date, serviceId } = req.query;
 
     // 1. Berber bilgisi
     const barber = await User.findById(barberId);
@@ -76,17 +75,24 @@ router.get('/available-times', async (req, res) => {
       return res.status(404).json({ error: 'Berber bulunamadı veya geçersiz rol' });
     }
 
-    // 2. O günkü availability
+    // 2. Servis bilgisi (süreyi almak için)
+    const service = await Service.findById(serviceId);
+    if (!service || service.barberId.toString() !== barberId) {
+      return res.status(404).json({ error: 'Servis bulunamadı veya berbere ait değil' });
+    }
+    const serviceDuration = service.durationMinutes; // dakika
+
+    // 3. O günkü availability
     const dayOfWeek = new Date(date).getDay(); // 0 = Pazar
     const availabilityForDay = barber.availability.find(a => a.dayOfWeek === dayOfWeek);
     if (!availabilityForDay) {
       return res.json([]); // O gün hiç müsait değilse boş dön
     }
 
-    // 3. O güne ait mevcut randevular
+    // 4. O güne ait mevcut randevular
     const appointments = await Appointment.find({ barberId, date });
 
-    // 4. 15 dakikalık slotları oluşturma
+    // 5. 15 dakikalık slotları oluşturma + servis süresine göre kontrol
     const slots = [];
     availabilityForDay.timeRanges.forEach(range => {
       let current = timeStringToMinutes(range.startTime);
@@ -95,8 +101,15 @@ router.get('/available-times', async (req, res) => {
       while (current + 15 <= end) {
         const timeLabel = minutesToTimeString(current);
 
-        // Bu slot dolu mu?
-        const isTaken = appointments.some(app => app.startTime === timeLabel);
+        // Servis süresine göre çakışma kontrolü
+        const slotStart = current;
+        const slotEnd = slotStart + serviceDuration;
+
+        const isTaken = appointments.some(app => {
+          const appStart = timeStringToMinutes(app.startTime);
+          const appEnd = appStart + app.duration; // Mevcut randevunun süresi
+          return slotStart < appEnd && slotEnd > appStart; // Çakışma kontrolü
+        });
 
         slots.push({
           time: timeLabel,
@@ -114,17 +127,7 @@ router.get('/available-times', async (req, res) => {
   }
 });
 
-// Yardımcı fonksiyonlar
-function timeStringToMinutes(timeStr) {
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  return hours * 60 + minutes;
-}
 
-function minutesToTimeString(minutes) {
-  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
-  const m = String(minutes % 60).padStart(2, '0');
-  return `${h}:${m}`;
-}
 
 
 
@@ -326,6 +329,32 @@ router.post('/randevu_al', async (req, res) => {
   }
 });
 
+
+
+// Yardımcı fonksiyonlar
+function timeStringToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTimeString(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+  const m = String(minutes % 60).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+
+// Yardımcı fonksiyonlar
+function timeStringToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTimeString(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+  const m = String(minutes % 60).padStart(2, '0');
+  return `${h}:${m}`;
+}
 
 
 
