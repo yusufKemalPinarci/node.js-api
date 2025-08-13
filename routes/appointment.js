@@ -77,9 +77,14 @@ router.get('/musaitberber', async (req, res) => {
 
     // 2. Servis bilgisi (süreyi almak için)
     const service = await Service.findById(serviceId);
-    if (!service || service.barberId.toString() !== barberId) {
-      return res.status(404).json({ error: 'Servis bulunamadı veya berbere ait değil' });
-    }
+if (!service) {
+  return res.status(404).json({ error: 'Servis bulunamadı' });
+}
+
+if (!service.barberId || service.barberId.toString() !== barberId) {
+  return res.status(400).json({ error: 'Servis bu berbere ait değil' });
+}
+
     const serviceDuration = service.durationMinutes; // dakika
 
     // 3. O günkü availability
