@@ -102,20 +102,23 @@ router.get('/:shopId/staff', async (req, res) => {
     // Tüm e-posta adreslerini al (string filtrele)
     const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
 
-    // Bu e-posta adreslerine sahip kullanıcıları getir (tüm bilgileriyle)
+    // Bu e-posta adreslerine sahip ve rolü 'Barber' olan, shopId ile eşleşen kullanıcıları getir
     const users = await User.find(
-  { email: { $in: staffEmails } },
-  '-passwordHash -__v' // Bu alanları hariç tut
-);
+      { 
+        email: { $in: staffEmails },
+        role: 'Barber',        // Rol kontrolü
+        shopId: shopId         // ShopId eşleşmesi
+      },
+      '-passwordHash -__v'     // Bu alanları hariç tut
+    );
 
-
-    // Tüm kullanıcı bilgilerini döndür
     res.status(200).json(users);
   } catch (error) {
     console.error('Hata:', error);
     res.status(500).json({ error: 'Sunucu hatası', details: error.message });
   }
 });
+
 
 
 // Query ile dükkanları filtrele     // Müşteri tarafında lazım arama butonu için
