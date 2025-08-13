@@ -41,7 +41,7 @@ router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
 
 
 // ✅ Tüm randevuları getir
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware,async (req, res) => {
   try {
     const appointments = await Appointment.find()
       .populate('userId', 'name email')
@@ -51,6 +51,43 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+router.get('/my', authMiddleware, async (req, res) => {
+  try {
+    // Müşterinin ID'si JWT'den geliyor
+    const customerId = req.user._id;
+
+    // Sadece giriş yapan kullanıcının randevularını getir
+    const appointments = await Appointment.find({ customerId })
+      .populate('barberId', 'name email phone')    // Berber bilgilerini ekle
+      .populate('serviceId', 'title price notes')        // Hizmet bilgilerini ekle
+      .sort({ date: 1, startTime: 1 });             // Tarihe göre sırala
+
+    res.json(appointments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/my_berber', authMiddleware, async (req, res) => {
+  try {
+    // Müşterinin ID'si JWT'den geliyor
+    const barberId = req.user._id;
+
+    // Sadece giriş yapan kullanıcının randevularını getir
+    const appointments = await Appointment.find({ barberId })
+      .populate('barberId', 'name email phone')    // Berber bilgilerini ekle
+      .populate('serviceId', 'title price notes')        // Hizmet bilgilerini ekle
+      .sort({ date: 1, startTime: 1 });             // Tarihe göre sırala
+
+    res.json(appointments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // ✅ ID ile tek bir randevuyu getir
 router.get('/:id', async (req, res) => {
