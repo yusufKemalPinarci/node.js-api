@@ -11,56 +11,122 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { barberId, date, startTime, serviceId } = req.body;
 
+    // 1️⃣ Berber kontrolü
     const barber = await User.findById(barberId);
     if (!barber || barber.role !== UserRole.BARBER) {
       return res.status(404).json({ error: 'Barber not found' });
     }
 
-    // Servis bilgilerini al
+    // 2️⃣ Servis bilgisi
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
 
-    // End time hesapla
+    // 3️⃣ Start ve end Date objeleri
     const [startHour, startMinute] = startTime.split(':').map(Number);
-    const startDateObj = new Date(`${date}T${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}:00`);
+    const startDateObj = new Date(date);
+    startDateObj.setHours(startHour, startMinute, 0, 0);
+
     const endDateObj = new Date(startDateObj.getTime() + service.durationMinutes * 60000);
 
-    const endTime = endDateObj
-      .toTimeString()
-      .slice(0, 5); // "HH:MM" formatında
-
-    // Bu saat aralığında çakışma var mı kontrol et
+    // 4️⃣ Çakışma kontrolü (Date objesi ile)
     const overlapping = await Appointment.findOne({
       barberId,
       date,
       $or: [
-        { startTime: { $lt: endTime, $gte: startTime } },
-        { endTime: { $gt: startTime, $lte: endTime } }
+        { startTime: { $lt: endDateObj }, endTime: { $gt: startDateObj } }
       ]
     });
+
     if (overlapping) {
       return res.status(400).json({ error: 'This time slot overlaps with another appointment' });
     }
 
+    // 5️⃣ Randevu oluşturma
     const appointment = new Appointment({
       barberId,
       customerId: req.user._id,
-      customerName: req.user.name,  // JWT’den gelen kullanıcı adı
-      customerPhone: req.user.phone, // JWT’den gelen telefon
+      customerName: req.user.name,
+      customerPhone: req.user.phone,
       date,
-      startTime,
-      endTime,                       // Yeni eklenen alan
+      startTime: startDateObj,
+      endTime: endDateObj,
       serviceId
     });
 
     await appointment.save();
     res.json(appointment);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
+// GET /available-times?barberId=xxx&date=2025-08-20    berberin dolu saatlerini görme 
+router.get('/available-times', async (req, res) => {
+  try {
+    const { barberId, date } = req.query;
+
+    // 1. Berber bilgisi
+    const barber = await User.findById(barberId);
+    if (!barber || barber.role !== 'Barber') {
+      return res.status(404).json({ error: 'Berber bulunamadı veya geçersiz rol' });
+    }
+
+    // 2. O günkü availability
+    const dayOfWeek = new Date(date).getDay(); // 0 = Pazar
+    const availabilityForDay = barber.availability.find(a => a.dayOfWeek === dayOfWeek);
+    if (!availabilityForDay) {
+      return res.json([]); // O gün hiç müsait değilse boş dön
+    }
+
+    // 3. O güne ait mevcut randevular
+    const appointments = await Appointment.find({ barberId, date });
+
+    // 4. 15 dakikalık slotları oluşturma
+    const slots = [];
+    availabilityForDay.timeRanges.forEach(range => {
+      let current = timeStringToMinutes(range.startTime);
+      const end = timeStringToMinutes(range.endTime);
+
+      while (current + 15 <= end) {
+        const timeLabel = minutesToTimeString(current);
+
+        // Bu slot dolu mu?
+        const isTaken = appointments.some(app => app.startTime === timeLabel);
+
+        slots.push({
+          time: timeLabel,
+          available: !isTaken // true = müsait, false = dolu
+        });
+
+        current += 15; // 15 dakika ilerle
+      }
+    });
+
+    res.json(slots);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Yardımcı fonksiyonlar
+function timeStringToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTimeString(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+  const m = String(minutes % 60).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+
 
 
 

@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
   date: { type: Date, required: true }, // Tarih + saat
-  startTime: { type: String, required: true }, // "10:00"
+  startTime: { type: Date, required: true },
+  endTime: { type: Date, required: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
