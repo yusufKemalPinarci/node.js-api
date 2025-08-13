@@ -7,7 +7,7 @@ const router = express.Router();
 
 // ✅ Yeni randevu oluştur
 // POST /api/appointments
-router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { barberId, date, startTime, serviceId } = req.body;
 
@@ -16,19 +16,42 @@ router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
       return res.status(404).json({ error: 'Barber not found' });
     }
 
-    // Daha önce bu saatte randevu var mı kontrol et
-    const existing = await Appointment.findOne({ barberId, date, startTime });
-    if (existing) {
-      return res.status(400).json({ error: 'This time slot is already booked' });
+    // Servis bilgilerini al
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    // End time hesapla
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const startDateObj = new Date(`${date}T${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}:00`);
+    const endDateObj = new Date(startDateObj.getTime() + service.durationMinutes * 60000);
+
+    const endTime = endDateObj
+      .toTimeString()
+      .slice(0, 5); // "HH:MM" formatında
+
+    // Bu saat aralığında çakışma var mı kontrol et
+    const overlapping = await Appointment.findOne({
+      barberId,
+      date,
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } }
+      ]
+    });
+    if (overlapping) {
+      return res.status(400).json({ error: 'This time slot overlaps with another appointment' });
     }
 
     const appointment = new Appointment({
       barberId,
       customerId: req.user._id,
-      customerName: req.user.name,         // JWT’den gelen kullanıcı adı
-      customerPhone: req.user.phone,       // JWT’den gelen telefon
+      customerName: req.user.name,  // JWT’den gelen kullanıcı adı
+      customerPhone: req.user.phone, // JWT’den gelen telefon
       date,
       startTime,
+      endTime,                       // Yeni eklenen alan
       serviceId
     });
 
@@ -38,6 +61,7 @@ router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ✅ Tüm randevuları getir
