@@ -2,7 +2,7 @@ const express = require('express');
 const Appointment = require('../models/Appointment');
 const { User, UserRole } = require('../models/User');
 const Service = require('../models/Service'); // Service şemanın yolu
-
+const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // ✅ Yeni randevu oluştur
