@@ -110,11 +110,16 @@ if (!service.barberId || service.barberId.toString() !== barberId) {
         const slotStart = current;
         const slotEnd = slotStart + serviceDuration;
 
-        const isTaken = appointments.some(app => {
-          const appStart = timeStringToMinutes(app.startTime);
-          const appEnd = appStart + app.duration; // Mevcut randevunun süresi
-          return slotStart < appEnd && slotEnd > appStart; // Çakışma kontrolü
-        });
+    const isTaken = appointments.some(app => {
+  if (!app.startTime || !app.endTime) return false;
+
+  // Date → dakika
+  const appStart = app.startTime.getHours() * 60 + app.startTime.getMinutes();
+  const appEnd   = app.endTime.getHours() * 60 + app.endTime.getMinutes();
+
+  return slotStart < appEnd && slotEnd > appStart;
+});
+
 
         slots.push({
           time: timeLabel,
