@@ -65,7 +65,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
 
 // GET /available-times?barberId=xxx&date=2025-08-20    berberin dolu saatlerini görme 
-router.get('/available-times', async (req, res) => {
+router.get('/musaitberber', async (req, res) => {
   try {
     const { barberId, date, serviceId } = req.query;
 
