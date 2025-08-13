@@ -25,6 +25,8 @@ router.post('/', authMiddleware, async (req, res) => { //authMiddleware,
     const appointment = new Appointment({
       barberId,
       customerId: req.user._id,
+      customerName: req.user.name,         // JWT’den gelen kullanıcı adı
+      customerPhone: req.user.phone,       // JWT’den gelen telefon
       date,
       startTime,
       serviceId
