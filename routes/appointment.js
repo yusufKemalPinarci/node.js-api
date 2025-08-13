@@ -1,6 +1,6 @@
 const express = require('express');
 const Appointment = require('../models/Appointment');
-const  User  = require('../models/User'); // User modelini içeren dosyanın yolu
+const { User, UserRole } = require('../models/User');
 const Service = require('../models/Service'); // Service şemanın yolu
 
 const router = express.Router();
