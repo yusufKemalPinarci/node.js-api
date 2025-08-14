@@ -372,7 +372,7 @@ function minutesToTimeString(minutes) {
 // 1️⃣ OTP üret ve SMS gönder
 router.post('/request', async (req, res) => {
   try {
-    const { barberId, serviceId, date, startTime, customerName, customerPhone } = req.body;
+    const { barberId, serviceId, date, startTime, customerName, customerPhone, endTime } = req.body;
 
     // Berber kontrolü
     const barber = await User.findById(barberId);
