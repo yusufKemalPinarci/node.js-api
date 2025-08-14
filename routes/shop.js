@@ -103,13 +103,15 @@ router.get('/:shopId/staff', async (req, res) => {
     const staffEmails = (shop.staffEmails || []).filter(email => typeof email === 'string');
 
     // Bu e-posta adreslerine sahip ve rolü 'Barber' olan, shopId ile eşleşen kullanıcıları getir
-    const users = await User.find(
-      { 
-        email: { $in: staffEmails },
-        role: 'Barber',        // Rol kontrolü
-        shopId: shopId         // ShopId eşleşmesi
+      const users = await User.find(
+      {
+        role: 'Barber',
+        $or: [
+          { email: { $in: staffEmails } },
+          { shopId: shopId }
+        ]
       },
-      '-passwordHash -__v'     // Bu alanları hariç tut
+      '-passwordHash -__v'
     );
 
     res.status(200).json(users);
