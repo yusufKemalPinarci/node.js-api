@@ -6,7 +6,7 @@ const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
 const client = twilio(accountSid, authToken);
 
-async function sendOtp(phone, code) {
+async function sendSMS(phone, code) {   // ← burada sendSMS
   try {
     const message = await client.messages.create({
       body: `Randevu doğrulama kodunuz: ${code}`,
@@ -20,4 +20,4 @@ async function sendOtp(phone, code) {
   }
 }
 
-module.exports = { sendOtp };
+module.exports = { sendSMS };   // ← exportta da sendSMS
