@@ -1,11 +1,11 @@
 const express = require('express');
 const Shop = require('../models/Shop');
 const { User } = require('../models/User');
-
+const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 
 // Create Shop
-router.post('/', async (req, res) => {
+router.post('/',authMiddleware, async (req, res) => {
   try {
     const {
       name,
@@ -17,10 +17,9 @@ router.post('/', async (req, res) => {
       openingHour,
       closingHour,
       workingDays,
-      ownerId,        // yeni alan
       staffEmails     // yeni alan
     } = req.body;
-
+    const ownerId = req.user._id; 
     const owner = await User.findById(ownerId);
     const ownerEmail = owner?.email;
        // Sahip mailini staff listesine otomatik ekle
@@ -44,8 +43,9 @@ router.post('/', async (req, res) => {
     await shop.save();
     res.status(201).json(shop);
   } catch (err) {
-    console.error('Shop create error:', err);
-    res.status(500).json({ error: 'Something went wrong' });
+   console.error('Shop create error:', err.message, err);
+   res.status(500).json({ error: 'Something went wrong', details: err.message });
+
   }
 });
 
