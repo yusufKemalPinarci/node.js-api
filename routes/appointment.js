@@ -4,6 +4,7 @@ const { User, UserRole } = require('../models/User');
 const Service = require('../models/Service'); // Service şemanın yolu
 const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
+const smsService = require('../utils/smsService.jsx'); // Twilio gibi bir servis
 
 // ✅ Yeni randevu oluştur
 // POST /api/appointments
@@ -365,6 +366,73 @@ function minutesToTimeString(minutes) {
   const m = String(minutes % 60).padStart(2, '0');
   return `${h}:${m}`;
 }
+
+
+
+// 1️⃣ OTP üret ve SMS gönder
+router.post('/request', async (req, res) => {
+  try {
+    const { barberId, serviceId, date, startTime, customerName, customerPhone } = req.body;
+
+    // Berber kontrolü
+    const barber = await User.findById(barberId);
+    if (!barber || barber.role !== 'Barber') return res.status(404).json({ error: 'Berber bulunamadı' });
+
+    // Servis kontrolü
+    const service = await Service.findById(serviceId);
+    if (!service) return res.status(404).json({ error: 'Servis bulunamadı' });
+
+    // OTP üret
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 haneli
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 dk geçerli
+
+    // OTP’yi veritabanına kaydet (Appointment temp)
+    await Appointment.create({
+      barberId,
+      serviceId,
+      date,
+      startTime,
+      customerName,
+      customerPhone,
+      status: 'pending',
+      otp,
+      otpExpiresAt: expiresAt
+    });
+
+    // SMS gönder
+    await smsService.sendSMS(customerPhone, `Randevu doğrulama kodunuz: ${otp}`);
+
+    res.json({ message: 'OTP gönderildi, lütfen kodu doğrulayın', customerPhone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/verify', async (req, res) => {
+  try {
+    const { customerPhone, otp } = req.body;
+    
+    const appointment = await Appointment.findOne({
+      customerPhone,
+      otp,
+      otpExpiresAt: { $gte: new Date() },
+      status: 'pending'
+    });
+
+    if (!appointment) return res.status(400).json({ error: 'Geçersiz veya süresi dolmuş kod' });
+
+    // OTP doğrulandı → randevuyu aktif yap
+    appointment.status = 'confirmed';
+    appointment.otp = undefined;
+    appointment.otpExpiresAt = undefined;
+    await appointment.save();
+
+    res.json({ message: 'Randevu başarıyla oluşturuldu', appointment });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 

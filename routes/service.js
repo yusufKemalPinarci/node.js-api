@@ -48,4 +48,17 @@ router.put('/:id', async (req, res) => {
 });
 
 
+// Örnek: /api/barber/:barberId/services
+router.get('/:barberId/services', async (req, res) => {
+  try {
+    const { barberId } = req.params;
+    const services = await Service.find({ barberId });
+    res.json(services);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 module.exports = router;
