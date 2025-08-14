@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { User, UserRole } = require('../models/User');
 const { generateToken } = require('../helpers/jwtService');
-
+const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
@@ -81,7 +81,32 @@ router.post('/login', async (req, res) => {
 });
 
 
-const authMiddleware = require('../middlewares/auth');
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    res.status(200).json(req.user);
+  } catch (error) {
+    console.error('Kullanıcı bilgisi getirme hatası:', error);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId).select('-passwordHash -__v'); // şifreyi ve gereksiz alanları çıkar
+    if (!user) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Kullanıcı getirme hatası:', error);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+
 
 router.post('/select-shop', authMiddleware, async (req, res) => {
   try {
