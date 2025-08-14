@@ -393,7 +393,7 @@ router.post('/request', async (req, res) => {
       date,
       startTime,
       customerName,
-       endTime,
+      endTime,
       customerPhone,
       status: 'pending',
       otp,
