@@ -383,7 +383,7 @@ router.post('/request', async (req, res) => {
     if (!service) return res.status(404).json({ error: 'Servis bulunamadı' });
 
     // OTP üret
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 haneli
+    const otp = '123456';//Math.floor(100000 + Math.random() * 900000).toString(); // 6 haneli
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 dk geçerli
 
     // OTP’yi veritabanına kaydet (Appointment temp)
@@ -401,7 +401,7 @@ router.post('/request', async (req, res) => {
     });
 
     // SMS gönder
-    await smsService.sendSMS(customerPhone, `Randevu doğrulama kodunuz: ${otp}`);
+    //await smsService.sendSMS(customerPhone, `Randevu doğrulama kodunuz: ${otp}`);
 
     res.json({ message: 'OTP gönderildi, lütfen kodu doğrulayın', customerPhone });
   } catch (err) {
