@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { User, UserRole } = require('../models/User');
 const { generateToken } = require('../helpers/jwtService');
-const authMiddleware = require('../middlewares/auth');
+
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
@@ -49,16 +49,36 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.put('/barber/availability/:id', async (req, res) => {
+  try {
+    const { availability } = req.body;
 
+    if (!availability || !Array.isArray(availability)) {
+      return res.status(400).json({ error: 'Availability must be an array' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { availability },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'Availability updated', availability: user.availability });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const lowerEmail = email.toLowerCase();
-
-    const user = await User.findOne({ email: lowerEmail });
+    email = email.toLowerCase(); 
+    const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Invalid email or password' });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
@@ -68,45 +88,14 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-
-router.get('/me', authMiddleware, async (req, res) => {
-  try {
-    res.status(200).json(req.user);
-  } catch (error) {
-    console.error('Kullanıcı bilgisi getirme hatası:', error);
-    res.status(500).json({ error: 'Sunucu hatası' });
-  }
-});
-
-router.get('/:id', async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    const user = await User.findById(userId).select('-passwordHash -__v'); // şifreyi ve gereksiz alanları çıkar
-    if (!user) {
-      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
-    }
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error('Kullanıcı getirme hatası:', error);
-    res.status(500).json({ error: 'Sunucu hatası' });
-  }
-});
-
-
+const authMiddleware = require('../middlewares/auth');
 
 router.post('/select-shop', authMiddleware, async (req, res) => {
   try {
@@ -190,6 +179,36 @@ router.put('/:id/phone', async (req, res) => {
 });
 
 
+router.put('/shop', authMiddleware, async (req, res) => {
+  try {
+    const { shopId } = req.body;
+
+    if (!shopId) {
+      return res.status(400).json({ error: 'shopId is required' });
+    }
+
+    // JWT token'dan userId geliyor
+    const userId = req.user.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { shopId },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      message: 'Shop ID updated successfully',
+      shopId: user.shopId
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // /api/user/exists?email=xxx@example.com
 router.get('/exists', async (req, res) => {
@@ -230,7 +249,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
 });
 
 
-// GET /api/user/:id/availability     //berberin uygun saatlerini çekmek için .
+// GET /api/user/:id/availability
 router.get('/:id/availability', async (req, res) => {
   try {
     const barber = await User.findById(req.params.id).select('availability role');
@@ -251,7 +270,7 @@ router.get('/:id/availability', async (req, res) => {
 
 
 
-// PUT /api/user/availability    //berber uyugn saatlerini güncellemesi için .
+// PUT /api/user/availability
 router.put('/availability', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== UserRole.BARBER) {
@@ -275,29 +294,6 @@ router.put('/availability', authMiddleware, async (req, res) => {
     await req.user.save();
 
     res.json({ message: 'Availability updated', availability: req.user.availability });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.put('/barber/availability/:id', async (req, res) => {
-  try {
-    const { availability } = req.body;
-
-    if (!availability || !Array.isArray(availability)) {
-      return res.status(400).json({ error: 'Availability must be an array' });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { availability },
-      { new: true }
-    );
-
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    res.json({ message: 'Availability updated', availability: user.availability });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
