@@ -4,7 +4,7 @@ const { User, UserRole } = require('../models/User');
 const Service = require('../models/Service'); // Service şemanın yolu
 const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
-const smsService = require('../utils/smsService.js'); // Twilio gibi bir servis
+const smsService = require('../utils/smsService.jsx'); // Twilio gibi bir servis
 
 // ✅ Yeni randevu oluştur
 // POST /api/appointments
