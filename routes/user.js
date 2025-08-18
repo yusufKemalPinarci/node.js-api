@@ -5,6 +5,60 @@ const { generateToken } = require('../helpers/jwtService');
 
 const router = express.Router();
 
+
+/**
+ * @swagger
+ * tags:
+ *   - name: User
+ *     description: Kullanıcı işlemleri
+ */
+
+/**
+ * @swagger
+ * /api/user/register:
+ *   post:
+ *     summary: Yeni kullanıcı kaydı
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Ahmet"
+ *               email:
+ *                 type: string
+ *                 example: "ahmet@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "123456"
+ *               role:
+ *                 type: string
+ *                 example: "BARBER"
+ *               phone:
+ *                 type: string
+ *               shopId:
+ *                 type: string
+ *               services:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               availability:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               bio:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Kullanıcı başarıyla oluşturuldu
+ *       400:
+ *         description: Email zaten kullanılıyor
+ */
+
 router.post('/register', async (req, res) => {
   try {
     let { name, email, password, role, phone, shopId, availability, services, bio } = req.body;
