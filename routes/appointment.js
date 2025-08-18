@@ -19,7 +19,7 @@ const smsService = require('../utils/smsService.jsx'); // Twilio gibi bir servis
 
 /**
  * @swagger
- * /api/appointments:
+ * /api/appointment:
  *   post:
  *     summary: Yeni randevu oluştur (kullanıcı girişli)
  *     tags: [Appointments]
@@ -49,7 +49,7 @@ const smsService = require('../utils/smsService.jsx'); // Twilio gibi bir servis
 
 
 // ✅ Yeni randevu oluştur
-// POST /api/appointments
+// POST /api/appointment
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { barberId, date, startTime, serviceId } = req.body;
@@ -110,7 +110,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
 /**
  * @swagger
- * /api/appointments/musaitberber:
+ * /api/appointment/musaitberber:
  *   get:
  *     summary: Belirli berberin müsait saatlerini getir
  *     tags: [Appointments]
