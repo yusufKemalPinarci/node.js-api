@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { User, UserRole } = require('../models/User');
 const { generateToken } = require('../helpers/jwtService');
-
+const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 
 
@@ -174,7 +174,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-const authMiddleware = require('../middlewares/auth');
+
 
 router.post('/select-shop', authMiddleware, async (req, res) => {
   try {
