@@ -4,6 +4,62 @@ const { User } = require('../models/User');
 const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Shop
+ *   description: Dükkan yönetimi
+ */
+
+/**
+ * @swagger
+ * /api/shop:
+ *   post:
+ *     summary: Yeni bir dükkan oluştur
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               fullAddress:
+ *                 type: string
+ *               neighborhood:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               adress:
+ *                 type: string
+ *               openingHour:
+ *                 type: string
+ *               closingHour:
+ *                 type: string
+ *               workingDays:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               staffEmails:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Dükkan oluşturuldu
+ *       500:
+ *         description: Sunucu hatası
+ */
+
 // Create Shop
 router.post('/',authMiddleware, async (req, res) => {
   try {
@@ -49,6 +105,31 @@ router.post('/',authMiddleware, async (req, res) => {
   }
 });
 
+
+
+
+
+
+/**
+ * @swagger
+ * /api/shop/by-staff-email:
+ *   get:
+ *     summary: Çalışana ait dükkanları listele
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Dükkanlar listelendi
+ *       400:
+ *         description: Email eksik
+ *       500:
+ *         description: Sunucu hatası
+ */
 // Çalışana Ait Dükkanları listele      //berber için lazım
 // GET /api/shop/by-staff-email?email=test@example.com
 router.get('/by-staff-email', async (req, res) => {
@@ -69,7 +150,26 @@ router.get('/by-staff-email', async (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /api/shop/{id}:
+ *   get:
+ *     summary: Dükkan detaylarını getir
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Dükkan bulundu
+ *       404:
+ *         description: Dükkan bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
 //Dükkanı id sine göre bilgilerini getirme   // hem müşteri hem berber tarafında lazım.
 router.get('/:id', async (req, res) => {
   try {
@@ -88,7 +188,26 @@ router.get('/:id', async (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /api/shop/{shopId}/staff:
+ *   get:
+ *     summary: Dükkan çalışanlarını listele
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: path
+ *         name: shopId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Çalışanlar listelendi
+ *       404:
+ *         description: Dükkan bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
 // dükkanda çalışan kişileri listelemek için 
 router.get('/:shopId/staff', async (req, res) => {
   try {
@@ -122,7 +241,27 @@ router.get('/:shopId/staff', async (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /api/shop/search:
+ *   get:
+ *     summary: Dükkanları filtrele
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: neighborhood
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Filtrelenmiş dükkan listesi
+ *       500:
+ *         description: Sunucu hatası
+ */
 // Query ile dükkanları filtrele     // Müşteri tarafında lazım arama butonu için
 // GET /api/shop/search?city=Istanbul&neighborhood=Kadikoy&district=Moda
 router.get('/search', async (req, res) => {
@@ -145,6 +284,19 @@ router.get('/search', async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /api/shop:
+ *   get:
+ *     summary: Tüm dükkanları getir
+ *     tags: [Shop]
+ *     responses:
+ *       200:
+ *         description: Dükkan listesi
+ *       500:
+ *         description: Sunucu hatası
+ */
+
 // Tüm dükkanları getir (genel listeleme)    // Müşteri tarafında lazım
 router.get('/', async (req, res) => {
   try {
@@ -157,6 +309,36 @@ router.get('/', async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/shop/{id}/add-staff:
+ *   put:
+ *     summary: Dükkan çalışanı ekle
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Çalışan eklendi
+ *       400:
+ *         description: Hatalı giriş
+ *       500:
+ *         description: Sunucu hatası
+ */
 //dükkana çalışan ekleme          // Dükkan sahibi tarafında lazım.
 // PUT /api/shop/:id/add-staff
 router.put('/:id/add-staff', async (req, res) => {

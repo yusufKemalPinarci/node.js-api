@@ -3,8 +3,38 @@ const Service = require('../models/Service');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Service
+ *   description: Berber servis işlemleri
+ */
 
-
+/**
+ * @swagger
+ * /api/service:
+ *   post:
+ *     summary: Yeni servis oluştur
+ *     tags: [Service]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               durationMinutes:
+ *                 type: number
+ *               barberId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Servis başarıyla oluşturuldu
+ */
 //yeni servis oluşturmak için berberler kullanır.
 router.post('/', async (req, res) => {
   try {
@@ -16,6 +46,17 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /api/service:
+ *   get:
+ *     summary: Tüm servisleri getir
+ *     tags: [Service]
+ *     responses:
+ *       200:
+ *         description: Servis listesi
+ */
 router.get('/', async (req, res) => {
   const services = await Service.find();
 
@@ -24,7 +65,38 @@ router.get('/', async (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /api/service/{id}:
+ *   put:
+ *     summary: Servisi güncelle
+ *     tags: [Service]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Güncellenecek servisin ID'si
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               durationMinutes:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Servis başarıyla güncellendi
+ *       404:
+ *         description: Servis bulunamadı
+ */
 // ilgili servisi güncellemek için berberler kullanır
 router.put('/:id', async (req, res) => {
   try {
@@ -47,7 +119,23 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-
+/**
+ * @swagger
+ * /api/service/{barberId}/services:
+ *   get:
+ *     summary: Belirli berbere ait servisleri getir
+ *     tags: [Service]
+ *     parameters:
+ *       - in: path
+ *         name: barberId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Berberin ID'si
+ *     responses:
+ *       200:
+ *         description: Servis listesi
+ */
 // Örnek: /api/barber/:barberId/services
 router.get('/:barberId/services', async (req, res) => {
   try {

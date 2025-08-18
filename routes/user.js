@@ -103,6 +103,20 @@ router.post('/register', async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /api/user/me:
+ *   get:
+ *     summary: JWT ile oturum açmış kullanıcının bilgilerini döner
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcı bilgisi
+ */
+
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     res.status(200).json(req.user);
@@ -112,6 +126,26 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   get:
+ *     summary: Kullanıcı bilgisi (ID ile)
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Kullanıcı bulundu
+ *       404:
+ *         description: Kullanıcı bulunamadı
+ */
 router.get('/:id', async (req, res) => {
   try {
     const userId = req.params.id;
@@ -128,6 +162,33 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/user/barber/availability/{id}:
+ *   put:
+ *     summary: Berberin belirli ID'li müsaitliklerini güncelle
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               availability:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: Güncellendi
+ */
 router.put('/barber/availability/:id', async (req, res) => {
   try {
     const { availability } = req.body;
@@ -176,6 +237,30 @@ router.post('/login', async (req, res) => {
 
 
 
+
+
+/**
+ * @swagger
+ * /api/user/select-shop:
+ *   post:
+ *     summary: Kullanıcıya shop seçtir
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               shopId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Shop seçildi
+ */
+
 router.post('/select-shop', authMiddleware, async (req, res) => {
   try {
     const { shopId } = req.body;
@@ -204,6 +289,21 @@ router.post('/select-shop', authMiddleware, async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/user/leave-shop:
+ *   post:
+ *     summary: Kullanıcı shoptan ayrılır
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Başarılı çıkış
+ */
+
 router.post('/leave-shop', authMiddleware, async (req, res) => {
   try {
     const user = req.user;
@@ -231,6 +331,33 @@ router.post('/leave-shop', authMiddleware, async (req, res) => {
 });
 
 
+
+
+/**
+ * @swagger
+ * /api/user/{id}/phone:
+ *   put:
+ *     summary: Kullanıcı telefon numarasını güncelle
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Telefon güncellendi
+ */
 // usera telefeon ekleme
 router.put('/:id/phone', async (req, res) => {
   try {
@@ -288,7 +415,22 @@ router.put('/shop', authMiddleware, async (req, res) => {
   }
 });
 
-
+/**
+ * @swagger
+ * /api/user/exists:
+ *   get:
+ *     summary: Email var mı kontrolü
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email var mı bilgisi döner
+ */
 // /api/user/exists?email=xxx@example.com
 router.get('/exists', async (req, res) => {
   const { email } = req.query;
@@ -299,12 +441,53 @@ router.get('/exists', async (req, res) => {
 });
 
 
+
+
+
+/**
+ * @swagger
+ * /api/user:
+ *   get:
+ *     summary: Tüm kullanıcıları listeler
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Kullanıcı listesi
+ */
 router.get('/', async (req, res) => {
   const users = await User.find().select('-passwordHash');
   res.json(users);
 });
 
 
+
+
+
+/**
+ * @swagger
+ * /api/user/profile:
+ *   put:
+ *     summary: Berber profilini güncelle
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               availability:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: Profil güncellendi
+ */
 
 // PUT /api/user/profile
 router.put('/profile', authMiddleware, async (req, res) => {
@@ -328,6 +511,28 @@ router.put('/profile', authMiddleware, async (req, res) => {
 });
 
 
+
+
+
+
+/**
+ * @swagger
+ * /api/user/{id}/availability:
+ *   get:
+ *     summary: Berberin müsaitlik bilgisini döner
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Müsaitlik bilgisi
+ */
+
+
 // GET /api/user/:id/availability
 router.get('/:id/availability', async (req, res) => {
   try {
@@ -348,6 +553,41 @@ router.get('/:id/availability', async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/user/availability:
+ *   put:
+ *     summary: Berberin müsaitliklerini güncelleme
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 dayOfWeek:
+ *                   type: integer
+ *                 timeRanges:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       startTime:
+ *                         type: string
+ *                       endTime:
+ *                         type: string
+ *     responses:
+ *       200:
+ *         description: Müsaitlik güncellendi
+ *       400:
+ *         description: Geçersiz veri
+ */
 
 // PUT /api/user/availability
 router.put('/availability', authMiddleware, async (req, res) => {

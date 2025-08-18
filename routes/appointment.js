@@ -6,6 +6,48 @@ const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 const smsService = require('../utils/smsService.jsx'); // Twilio gibi bir servis
 
+
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Appointments
+ *   description: Randevu yönetimi
+ */
+
+/**
+ * @swagger
+ * /api/appointments:
+ *   post:
+ *     summary: Yeni randevu oluştur (kullanıcı girişli)
+ *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               barberId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 example: "2025-08-20"
+ *               startTime:
+ *                 type: string
+ *                 example: "14:30"
+ *               serviceId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Randevu oluşturuldu
+ */
+
+
 // ✅ Yeni randevu oluştur
 // POST /api/appointments
 router.post('/', authMiddleware, async (req, res) => {
@@ -65,6 +107,30 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/appointments/musaitberber:
+ *   get:
+ *     summary: Belirli berberin müsait saatlerini getir
+ *     tags: [Appointments]
+ *     parameters:
+ *       - in: query
+ *         name: barberId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: serviceId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Müsait saatler listesi
+ */
 // GET /available-times?barberId=xxx&date=2025-08-20    berberin dolu saatlerini görme 
 router.get('/musaitberber', async (req, res) => {
   try {
@@ -142,7 +208,18 @@ if (!service.barberId || service.barberId.toString() !== barberId) {
 
 
 
-
+/**
+ * @swagger
+ * /api/appointment:
+ *   get:
+ *     summary: Tüm randevuları getir
+ *     tags: [Appointment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Randevular başarıyla getirildi
+ */
 
 // ✅ Tüm randevuları getir
 router.get('/', authMiddleware,async (req, res) => {
@@ -156,6 +233,20 @@ router.get('/', authMiddleware,async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/appointment/my:
+ *   get:
+ *     summary: Giriş yapan kullanıcının randevularını getir
+ *     tags: [Appointment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcının randevuları
+ */
 
 router.get('/my', authMiddleware, async (req, res) => {
   try {
@@ -174,6 +265,19 @@ router.get('/my', authMiddleware, async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /api/appointment/my_berber:
+ *   get:
+ *     summary: Giriş yapan berberin randevularını getir
+ *     tags: [Appointment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berberin randevuları
+ */
 router.get('/my_berber', authMiddleware, async (req, res) => {
   try {
     // Müşterinin ID'si JWT'den geliyor
@@ -193,6 +297,24 @@ router.get('/my_berber', authMiddleware, async (req, res) => {
 
 
 
+
+
+/**
+ * @swagger
+ * /api/appointment/{id}:
+ *   get:
+ *     summary: ID ile randevu getir
+ *     tags: [Appointment]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Randevu bilgisi
+ */
 // ✅ ID ile tek bir randevuyu getir
 router.get('/:id', async (req, res) => {
   try {
@@ -209,6 +331,39 @@ router.get('/:id', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
+
+/**
+ * @swagger
+ * /api/appointment/{id}:
+ *   put:
+ *     summary: Randevuyu güncelle
+ *     tags: [Appointment]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *               userId:
+ *                 type: string
+ *               customerPhone:
+ *                 type: string
+ *               serviceId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Güncellenmiş randevu
+ */
 
 // ✅ Randevuyu güncelle
 router.put('/:id', async (req, res) => {
@@ -236,6 +391,24 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/appointment/{id}:
+ *   delete:
+ *     summary: Randevuyu sil
+ *     tags: [Appointment]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Başarıyla silindi
+ */
 // ✅ Randevuyu sil
 router.delete('/:id', async (req, res) => {
   try {
@@ -253,7 +426,27 @@ router.delete('/:id', async (req, res) => {
 
 
 
-
+/**
+ * @swagger
+ * /api/appointment/{id}/availability:
+ *   get:
+ *     summary: Belirli berber için belirli günde müsaitlik getir
+ *     tags: [Appointment]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Müsait saatler
+ */
 // GET /api/appointment/:id/availability?date=2025-08-15
 router.get('/:id/availability', async (req, res) => {
   try {
@@ -281,7 +474,37 @@ router.get('/:id/availability', async (req, res) => {
 
 
 
-
+/**
+ * @swagger
+ * /api/appointment/randevu_al:
+ *   post:
+ *     summary: Yeni randevu al
+ *     tags: [Appointment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               barberId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               customerName:
+ *                 type: string
+ *               customerPhone:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *               startTime:
+ *                 type: string
+ *               serviceId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Randevu oluşturuldu
+ */
 
 // müşteri uygun saate randevu alacak.
 router.post('/randevu_al', async (req, res) => {
@@ -368,6 +591,38 @@ function minutesToTimeString(minutes) {
 }
 
 
+/**
+ * @swagger
+ * /api/appointment/request:
+ *   post:
+ *     summary: OTP göndererek randevu talebi
+ *     tags: [Appointment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               barberId:
+ *                 type: string
+ *               serviceId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *               startTime:
+ *                 type: string
+ *               customerName:
+ *                 type: string
+ *               customerPhone:
+ *                 type: string
+ *               endTime:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP gönderildi
+ */
+
 
 // 1️⃣ OTP üret ve SMS gönder
 router.post('/request', async (req, res) => {
@@ -408,6 +663,29 @@ router.post('/request', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+/**
+ * @swagger
+ * /api/appointment/verify:
+ *   post:
+ *     summary: OTP doğrulaması ile randevuyu onayla
+ *     tags: [Appointment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               customerPhone:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Randevu onaylandı
+ */
 
 router.post('/verify', async (req, res) => {
   try {
