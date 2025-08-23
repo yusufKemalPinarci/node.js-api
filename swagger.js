@@ -9,14 +9,15 @@ const options = {
       version: '1.0.0',
     },
      servers: [
+            {
+        url: 'https://node-js-api-8m2g.onrender.com',
+        description: 'Render Production Sunucusu',
+      },
       {
         url: 'http://localhost:3000',
         description: 'Local Geliştirme Sunucusu',
       },
-      {
-        url: 'https://node-js-api-8m2g.onrender.com',
-        description: 'Render Production Sunucusu',
-      },
+
       {
         url: process.env.SWAGGER_URL, // istersen dinamik olarak .env'den de al
         description: 'Ortam Değişkeninden Gelen URL',
