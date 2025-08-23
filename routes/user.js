@@ -213,6 +213,71 @@ router.put('/barber/availability/:id', async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Kullanıcı girişi yap
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "user@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "mypassword123"
+ *     responses:
+ *       200:
+ *         description: Giriş başarılı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT authentication token
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 user:
+ *                   type: object
+ *                   description: Kullanıcı bilgileri
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60d0fe4f5311236168a109ca"
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     name:
+ *                       type: string
+ *                       example: "John Doe"
+ *       400:
+ *         description: Geçersiz email veya şifre
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid email or password"
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Something went wrong"
+ */
 
 router.post('/login', async (req, res) => {
   try {
